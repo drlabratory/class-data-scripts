@@ -7,6 +7,25 @@ census_api_key("b851144a625a1ff4d8e04253547dde222768dd39")
 
 # Mapping Oxycontin Prescriptions
 
+drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4)) {
+  dat <- dat %>% rename_all(make.names)
+  dat$Number.of.Prescriptions <- as.numeric(dat$Number.of.Prescriptions)
+  data_fuzzy <- dat %>% 
+    select(State, 
+           Product.Name, 
+           Number.of.Prescriptions, 
+           Suppression.Used, 
+           Quarter) %>% 
+    filter(grepl(pattern = drugname,x = Product.Name, ignore.case = TRUE), 
+           Suppression.Used == "false", 
+           Quarter %in% QuarterNum)  %>% 
+    group_by(State) %>% 
+    summarise(drug_num = sum(Number.of.Prescriptions)) %>% 
+    # This renames the column name to whatever the search string is
+    rename(!!drugname:=drug_num)
+  return(data_fuzzy)
+}
+
 plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(1,2,3,4)) {
   # take a data frame, search for a drug, and plot it, 
   # either raw or normalized 
@@ -17,7 +36,6 @@ plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(
     filter(grepl(pattern = drugname,x = Product.Name, ignore.case = TRUE), 
            Suppression.Used == "false", Quarter %in% QuarterNum)  %>% 
     group_by(State) %>% summarise(drug_num = sum(Number.of.Prescriptions))
-  View(data_fuzzy)
   data_fuzzy$State <-  state.name[match(data_fuzzy$State, state.abb)]
   state_2010 <- get_decennial(geography = "state", variables = "P0010001", year = "2010")
   state_2010 <- state_2010 %>% 
