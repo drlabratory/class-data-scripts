@@ -3,7 +3,9 @@ require(tidyverse)
 require(maps)
 require(scales)
 
-census_api_key("b851144a625a1ff4d8e04253547dde222768dd39")
+# you need to set this yourself, instructions are in the tidycensus
+# documentation, or just go to http://api.census.gov/data/key_signup.html
+# census_api_key("INSERTHERE")
 
 # Mapping Oxycontin Prescriptions
 
