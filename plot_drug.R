@@ -7,11 +7,17 @@ require(scales)
 # documentation, or just go to http://api.census.gov/data/key_signup.html
 # census_api_key("INSERTHERE")
 
-# Mapping Oxycontin Prescriptions
 
+# This function takes a dataframe made from Medicaid State Data, and returns
+# the total number of prescriptions by state. It takes the name of the dataframe
+# the string you want to search, and optionally the Quarter
 drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4)) {
   dat <- dat %>% rename_all(make.names)
+  # removes spaces from column names to X.X format instead of "X X"
   dat$Number.of.Prescriptions <- as.numeric(dat$Number.of.Prescriptions)
+  # sometimes it comes in as a character
+  # Select what we need, filter on the string, then summarize number of
+  # Prescriptions
   data_fuzzy <- dat %>% 
     select(State, 
            Product.Name, 
@@ -29,7 +35,7 @@ drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4)) {
 }
 
 plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(1,2,3,4)) {
-  # take a data frame, search for a drug, and plot it, 
+  # take a data frame, search for a drug, and plot it ona map of the US
   # either raw or normalized 
   dat <- dat %>% rename_all(make.names)
   dat$Number.of.Prescriptions <- as.numeric(dat$Number.of.Prescriptions)
