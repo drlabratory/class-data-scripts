@@ -34,6 +34,16 @@ drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4)) {
   return(data_fuzzy)
 }
 
+# placeholder until I make this more general. Take two data frames
+# then plot them by their state labels
+compare_drug <- function(dat1, dat2, joinby = "State") { 
+  both <- left_join(dat1, dat2, by = joinby)
+  plt <- ggplot(oxyvhydro, aes(x = OXYCODO, y = HYDROCOD, label = State))
+  plt + 
+    geom_text(aes(label = State)) + 
+    geom_smooth(method = 'lm')
+}
+
 plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(1,2,3,4)) {
   # take a data frame, search for a drug, and plot it ona map of the US
   # either raw or normalized by state population, the limits argument feeds into
