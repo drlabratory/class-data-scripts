@@ -36,7 +36,8 @@ drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4)) {
 
 plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(1,2,3,4)) {
   # take a data frame, search for a drug, and plot it ona map of the US
-  # either raw or normalized 
+  # either raw or normalized by state population, the limits argument feeds into
+  # ggplot and allows you to plot multiple plots using the same scale limit
   dat <- dat %>% rename_all(make.names)
   dat$Number.of.Prescriptions <- as.numeric(dat$Number.of.Prescriptions)
   data_fuzzy <- dat %>% 
@@ -44,18 +45,28 @@ plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(
     filter(grepl(pattern = drugname,x = Product.Name, ignore.case = TRUE), 
            Suppression.Used == "false", Quarter %in% QuarterNum)  %>% 
     group_by(State) %>% summarise(drug_num = sum(Number.of.Prescriptions))
+  # This changes the two letter state code to it's full name
+  # This is needed to plot later
   data_fuzzy$State <-  state.name[match(data_fuzzy$State, state.abb)]
+  # This grabs state level population data from 2010 census
   state_2010 <- get_decennial(geography = "state", variables = "P0010001", year = "2010")
+  # filtering the data for columns we care about
+  # The 'State = NAME' nomenclature renames the NAME column to State
   state_2010 <- state_2010 %>% 
     select(
       State = NAME,
       Population = value
     )
+  # This joins the Medicaid data to the census data
+  # Missing data becomes 'NA' so DC and XX disappear
   data_fuzzy <- left_join(data_fuzzy, state_2010, by = 'State')
-  data_fuzzy$State <-  tolower(data_fuzzy$State)
+  data_fuzzy$State <-  tolower(data_fuzzy$State) # needed to plot
   data_fuzzy <- data_fuzzy %>% filter(!is.na(State))
+  # this is in case it comes in as char
   data_fuzzy$Population <- as.numeric(data_fuzzy$Population)
+  # make a new column normalized by state population
   data_fuzzy <- mutate(data_fuzzy, drug_norm = drug_num / Population)
+  # This 
   mapping <- map_data("state")
   if (norm) {
     plot <- ggplot(data_fuzzy, aes(fill = drug_norm))
