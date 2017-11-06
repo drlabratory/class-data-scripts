@@ -5,15 +5,19 @@ library(tidycensus)
 # after getting API key, paste it below and uncomment the line
 # census_api_key("INSERTHERE")
 
-# make a new dataframe that contains all of the variables for 2016
+# make a new dataframe that contains all of the variables for 2015
 # TAKE NOTE: all populations for years other than 2000, 2010, etc. are
 # estimated from survey data
-v2016 <- load_variables(2015, "acs5")
+v2015 <- load_variables(2015, "acs5")
 
-# Load variables from 2010 census data
-
+# Load variables from 2010 census data instead
 v2010 <- load_variables(2010, "sf1")
 
+# Make a dataframe of state level census population data. Notice the count data is in 
+# a column called "values"
 state_2010 <- get_decennial(geography = "state", variables = "P0010001", year = "2010")
 
-state_2016 <- get_acs(geography = "state", variables = "B19013_001", year = "2016")
+# Make a dataframe of state level survey population data. Notice the count data is in 
+# a column called "estimate"
+state_2015 <- get_acs(geography = "state", variables = "B01003_001E", year = "2015")
+
