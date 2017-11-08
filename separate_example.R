@@ -4,7 +4,6 @@ require(tidyverse)
 test_txt <- c("1234567890", "234567890", "4567890", "67890")
 test_txt <- as.data.frame(test_txt)
 
-#separate based on position, right index 
 # The confusing part is it splits things in the order listed,
 # splitting the first one, then the second one
 # so sep = c(-6,-3) will give a different results than
