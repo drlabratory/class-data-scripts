@@ -47,5 +47,5 @@ plot +
     low = "white",
     name = "Population by County"
   ) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "right")
 
