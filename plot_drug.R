@@ -38,7 +38,12 @@ drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4)) {
 # then plot them by their state labels
 compare_drug <- function(dat1, dat2, joinby = "State") { 
   both <- left_join(dat1, dat2, by = joinby)
-  plt <- ggplot(oxyvhydro, aes(x = OXYCODO, y = HYDROCOD, label = State))
+  both <- both %>% 
+    filter(State != "XX")
+  plt <- ggplot(both, 
+                aes(x = , 
+                    y = , 
+                    label = State))
   plt + 
     geom_text(aes(label = State)) + 
     geom_smooth(method = 'lm')
@@ -59,17 +64,17 @@ plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(
   # This is needed to plot later
   data_fuzzy$State <-  state.name[match(data_fuzzy$State, state.abb)]
   # This grabs state level population data from 2010 census
-  state_2010 <- get_decennial(geography = "state", variables = "P0010001", year = "2010")
+  state_data <- get_decennial(geography = "state", variables = "P0010001", year = "2010")
   # filtering the data for columns we care about
   # The 'State = NAME' nomenclature renames the NAME column to State
-  state_2010 <- state_2010 %>% 
+  state_data <- state_data %>% 
     select(
       State = NAME,
       Population = value
     )
   # This joins the Medicaid data to the census data
   # Missing data becomes 'NA' so DC and XX disappear
-  data_fuzzy <- left_join(data_fuzzy, state_2010, by = 'State')
+  data_fuzzy <- left_join(data_fuzzy, state_data, by = 'State')
   data_fuzzy$State <-  tolower(data_fuzzy$State) # needed to plot
   data_fuzzy <- data_fuzzy %>% filter(!is.na(State))
   # this is in case it comes in as char
