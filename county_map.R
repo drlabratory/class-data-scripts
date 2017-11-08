@@ -35,6 +35,9 @@ mo_pop$county <- mo_pop$county %>%
   str_to_lower() %>% 
   str_replace_all("\\.", "")
 
+# TODO add a join command and plot using geom_polygon in order to draw
+# borders. Ugh.
+
 plot <- ggplot(mo_pop, aes(fill = estimate))
 # the map = mapping makes sure ggplot knows what to use
 plot + 
