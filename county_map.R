@@ -12,11 +12,12 @@ mo_pop <- get_acs(geography = "county",
                   state = "MO")
 
 # This creates a dataframe to map the counties to geographic regions
-mapping <- map_data(map = "county", region = "missouri")
+counties <- map_data(map = "county", region = "missouri")
+states <- map_data("state", region = "missouri")
 
 # This renames the column name "subregion" to "region" because geom_map
 # has a bug (feature?) that it always uses the region column
-mapping <- mapping %>%
+counties <- counties %>%
   select(long,
          lat,
          group,
@@ -26,29 +27,37 @@ mapping <- mapping %>%
 #we need to change the data in the NAME column to get rid of part of it
 mo_pop <- mo_pop %>% 
   separate(NAME, "tmp_county", sep = ", Missouri") %>% 
-  separate(tmp_county, "county", sep = " County")
+  separate(tmp_county, "county", sep = " County") %>% 
+  select(GEOID,
+         "region" = county,
+         variable,
+         "population" = estimate
+         )
 
 # Now we need to get rid of case and stupid periods
 # But! periods are special characters, and need to be "escaped"
 # That's what the "\\." does
-mo_pop$county <- mo_pop$county %>%  
+mo_pop$region <- mo_pop$region %>%  
   str_to_lower() %>% 
   str_replace_all("\\.", "")
 
 # TODO add a join command and plot using geom_polygon in order to draw
 # borders. Ugh.
+mo_pop_join <- inner_join(counties, mo_pop, by = "region")
 
-plot <- ggplot(mo_pop, aes(fill = estimate))
-# the map = mapping makes sure ggplot knows what to use
-plot + 
-  geom_map(aes(map_id = county), 
-                map = mapping) + 
-  expand_limits(x=mapping$long, y=mapping$lat) + 
+mo_base <- ggplot(data = states, 
+                  mapping = aes(x = long, y = lat, group = group)) + 
   coord_fixed(1.3) + 
+  geom_polygon(color = "black", 
+               fill = "gray")
+
+mo_base + 
+  geom_polygon(data = mo_pop_join, aes(fill = population), color = "grey") +
+  geom_polygon(color = "black", fill = NA) +
+  theme_bw() +
   scale_fill_gradient(
-    high = muted("red"), 
-    low = "white",
+    high = muted("blue"), 
+    low = muted("red"),
     name = "Population by County"
-  ) +
-  theme(legend.position = "right")
+  )
 
