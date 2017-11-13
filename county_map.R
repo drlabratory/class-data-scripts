@@ -55,9 +55,10 @@ mo_base +
   geom_polygon(data = mo_pop_join, aes(fill = population), color = "grey") +
   geom_polygon(color = "black", fill = NA) +
   theme_bw() +
-  scale_fill_gradient(
-    high = muted("blue"), 
-    low = muted("red"),
+  scale_fill_gradientn(
+    colours = rev(rainbow(7)),
+    breaks = c(200, 400, 1000, 10000, 100000, 1000000),
+    trans = "log10",
     name = "Population by County"
   )
 
