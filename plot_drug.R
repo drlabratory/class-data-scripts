@@ -11,7 +11,7 @@ require(scales)
 # This function takes a dataframe made from Medicaid State Data, and returns
 # the total number of prescriptions by state. It takes the name of the dataframe
 # the string you want to search, and optionally the Quarter
-drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4)) {
+drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4), norm = FALSE) {
   dat <- dat %>% rename_all(make.names)
   # removes spaces from column names to X.X format instead of "X X"
   dat$Number.of.Prescriptions <- as.numeric(dat$Number.of.Prescriptions)
@@ -37,13 +37,16 @@ drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4)) {
 # placeholder until I make this more general. Take two data frames
 # then plot them by their state labels
 compare_drug <- function(dat1, dat2, joinby = "State") { 
+  drug1 <- colnames(dat1)[2]
+  drug2 <- colnames(dat2)[2]
   both <- left_join(dat1, dat2, by = joinby)
   both <- both %>% 
     filter(State != "XX")
+  View(both)
   plt <- ggplot(both, 
-                aes(x = , 
-                    y = , 
-                    label = State))
+                aes_string(x = drug1, 
+                           y = drug2, 
+                           label = joinby))
   plt + 
     geom_text(aes(label = State)) + 
     geom_smooth(method = 'lm')
