@@ -2,6 +2,7 @@ require(tidycensus)
 require(tidyverse)
 require(maps)
 require(scales)
+require(rlang)
 
 # you need to set this yourself, instructions are in the tidycensus
 # documentation, or just go to http://api.census.gov/data/key_signup.html
@@ -51,28 +52,24 @@ compare_drug <- function(all_dat, search1, search2, joinby = "State", norm = FAL
     state_data <- state_data %>% 
       select(State = NAME, Population = value)
     state_data$State <- state.abb[match(state_data$State, state.name)]
-    View(state_data)
     bothnorm <- left_join(both, state_data, by = joinby)
     bothnorm <- bothnorm %>% 
       filter(State != "DC")
-    View(bothnorm)
-    bothnorm1 <- mutate(bothnorm, 
-              norm1 = oxycodone / Population, 
-              norm2 = hydrocod / Population)
-    View(bothnorm1)
-    bothnorm2 <- select(bothnorm1, State,
-                !drug1 = norm1,
-                !drug2 = norm2)
-    View(bothnorm2)
-    both <- bothnorm2
+    edrug1 <- sym(drug1)
+    edrug2 <- sym(drug2)
+    bothnorm <- mutate(bothnorm, 
+              norm1 = (!! edrug1) / Population, 
+              norm2 = (!! edrug2) / Population)
+    bothnorm <- select(bothnorm, State, norm1, norm2)
+    colnames(bothnorm)[match("norm1",colnames(bothnorm))] <- drug1
+    colnames(bothnorm)[match("norm2",colnames(bothnorm))] <- drug2
   }
-  plt <- ggplot(both, 
+  plt <- ggplot(bothnorm, 
                 aes_string(x = drug1, 
                            y = drug2, 
                            label = joinby))
-  plt + 
-    geom_text(aes(label = State)) + 
-    geom_smooth(method = 'lm')
+  plt
+  return(plt)
 }
 
 plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(1,2,3,4)) {
