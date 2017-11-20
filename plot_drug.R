@@ -36,13 +36,36 @@ drug_grep <- function(dat, drugname, QuarterNum = c(1,2,3,4), norm = FALSE) {
 
 # placeholder until I make this more general. Take two data frames
 # then plot them by their state labels
-compare_drug <- function(dat1, dat2, joinby = "State") { 
+compare_drug <- function(all_dat, search1, search2, joinby = "State", norm = FALSE) { 
+  dat1 <- drug_grep(all_dat, search1)
+  dat2 <- drug_grep(all_dat, search2)
   drug1 <- colnames(dat1)[2]
   drug2 <- colnames(dat2)[2]
   both <- left_join(dat1, dat2, by = joinby)
   both <- both %>% 
     filter(State != "XX")
-  View(both)
+  if (norm) {
+    state_data <- get_decennial(geography = "state", 
+                                variables = "P0010001", 
+                                year = "2010")
+    state_data <- state_data %>% 
+      select(State = NAME, Population = value)
+    state_data$State <- state.abb[match(state_data$State, state.name)]
+    View(state_data)
+    bothnorm <- left_join(both, state_data, by = joinby)
+    bothnorm <- bothnorm %>% 
+      filter(State != "DC")
+    View(bothnorm)
+    bothnorm1 <- mutate(bothnorm, 
+              norm1 = oxycodone / Population, 
+              norm2 = hydrocod / Population)
+    View(bothnorm1)
+    bothnorm2 <- select(bothnorm1, State,
+                !drug1 = norm1,
+                !drug2 = norm2)
+    View(bothnorm2)
+    both <- bothnorm2
+  }
   plt <- ggplot(both, 
                 aes_string(x = drug1, 
                            y = drug2, 
@@ -53,7 +76,7 @@ compare_drug <- function(dat1, dat2, joinby = "State") {
 }
 
 plot_drug <- function(dat, drugname, norm = TRUE, limits = NULL, QuarterNum = c(1,2,3,4)) {
-  # take a data frame, search for a drug, and plot it ona map of the US
+  # take a data frame, search for a drug, and plot it on a map of the US
   # either raw or normalized by state population, the limits argument feeds into
   # ggplot and allows you to plot multiple plots using the same scale limit
   dat <- dat %>% rename_all(make.names)
